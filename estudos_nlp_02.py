@@ -1,9 +1,10 @@
 """
 rede neurais convolucionais para PLN ou NLP
-esse arquivo faz a tokeniração
+esse arquivo desenvolve o modelo da rede neural
 """
 import numpy as np
 import math
+import multiprocessing as mp
 import re
 import pandas as pd
 from bs4 import BeautifulSoup as bs
@@ -15,7 +16,8 @@ import random
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from keras import layers
-import keras.datasets as tfds
+from keras.preprocessing.text import Tokenizer
+import tensorflow_datasets as tfds
 from sklearn.model_selection import train_test_split
 
 
@@ -60,7 +62,7 @@ class pln():
         exemplo 1 - 0.2 = 0.8 ficará retido 80% do total
         :param X: previsores
         :param y: classe
-        :param tamanho: tamanho do que será retido
+        :param tamanho: tamanho que será do total
         :param comentario: ativa os comentarios de saida
         :return:
         """
@@ -72,9 +74,6 @@ class pln():
         if comentario:
             print("tamanho total para treinamento", X.shape)
             print("tamanho total para teste", y.shape)
-
-            print("unicos e quantidade de y", unico_y, qte_y)
-            print("unicos e quantidade de x", unico_X, qte_x)
         return X,y
 
     def limpeza(self, texto):
@@ -82,11 +81,19 @@ class pln():
         texto = re.sub(r"@[A-Za-z0-9]+", ' ',texto) #tira os nomes de usuarios
         texto = re.sub(r"https?://[A-Za-z0-9./]+", ' ', texto) # tira as urls
         texto = re.sub(r"[^a-zA-Z.!?]", ' ', texto) # remove impurezas tais como numeros etc
+        texto = re.sub(r"\b\.*\b", '', texto)
+        texto = re.sub(r"\b!*\b", '', texto)
+        texto = re.sub(r"\b_\b", '', texto) # tira o _ das palavras
         texto = re.sub(r" +", ' ', texto) # remove espaços em brancos muito longos
         texto = texto.lower() # deixa o texto em minusculo
         return texto
 
     def modelo_spacy(self, texto):
+        """
+        usado para limpar o texto
+        :param texto: texto não formatado
+        :return: texto formatado
+        """
         nlp = sp.load('en_core_web_sm')
         doc = nlp(texto)
         palavras = []
@@ -96,22 +103,103 @@ class pln():
         palavras = ' '.join([str(elemento) for elemento in palavras]) # volta como string
         return palavras
 
-    def limpeza_geral(self, X, y):
-        data_texto = [self.modelo_spacy(self.limpeza(texto)) for texto in X]
+    def count_cpu(self):
+        n_c = mp.cpu_count()
+        n_c = int(n_c/2)
+        return n_c
+
+    def processa_texto(self,texto):
+        return self.modelo_spacy(self.limpeza(texto))
+
+    def limpeza_geral(self, X, y, processo=None):
+        """
+        o parametro processo habilita a opção de multprocessamento, use com cuidado!!!
+
+        :param X: recebe uma lista de sentenças
+        :param y: recebe as respostas
+        :param processo: numero dos nucleos de processadores para processamento paralelo
+        :return:
+        """
+        if processo:
+            p = mp.Pool(processes=processo)
+            data_texto = p.map(self.processa_texto, X)
+            p.close()
+        else:
+            data_texto = [self.processa_texto(i) for i in X]
+
         data_labels = y
         data_labels[data_labels == 4] = 1 # transforma para 0 ou 1
         return data_texto, data_labels
 
+    def tonkenerizador(self, texto, treino=None):
+        """
+        esse é o nosso encoder, o objetivo dele é trazer as frases separalas em uma lista
+        e dá um indentificador para cada palavra
+        :param texto: lista com o texto limpo
+        :return:
+        """
+        encode_on = r"./vocab_tokenizer"
+
+        if encode_on and treino==False:
+            tokenizer_load = self.carrega_vocab()
+        else:
+            # build
+            tokenizer_build = tfds.deprecated.text.SubwordTextEncoder.build_from_corpus(texto, target_vocab_size=2**15)
+            tokenizer_build.save_to_file("./vocab_tokenizer")
+            print('salvando o vocab')
+            tokenizer_load = self.carrega_vocab()
+        return tokenizer_load
+
+    def carrega_vocab(self):
+        tokenizer_load = tfds.deprecated.text.SubwordTextEncoder.load_from_file('./vocab_tokenizer')
+        print('vocab carregado')
+        return tokenizer_load
+
+    def base_teste(self, X, y, tokenize):
+        data_input = [tokenize.encode(s) for s in X[0:100]]
+        for _ in range(5):
+            print("encoder", data_input[random.randint(0, len(data_input)-1)])
+
+    def padding(self, X, tokenize):
+        """
+        essa função serve para vermos quanto 0 deveremos preencher para cada linha
+        :param X: recebe a base
+        :param tokenize: recebe o encoder
+        :return:
+        """
+        data_input = [tokenize.encode(s) for s in X]
+        max_len = max([len(m) for m in data_input ])
+        print(max_len)
+
+        data_input = tf.keras.preprocessing.sequence.pad_sequences(data_input, value=0,
+                                                                   padding='post', maxlen=max_len)
+        return data_input
+
+    def treinamento(self, data_input, resposta):
+        train_input, teste_input, train_label, teste_label = train_test_split(data_input, resposta,test_size=0.3, stratify=resposta)
+
+        print("###### treino #####")
+        print(train_input.shape)
+        print(train_label.shape)
+
+        print("###### teste #####")
+        print(teste_input.shape)
+        print(teste_label.shape)
+
     def run(self):
+        tokenize = self.carrega_vocab()
         data = self.carregamento()
-        # self.analise(data)
         X, y = self.processamento(data, comentario=False)
-        X, y = self.model(X,y, 0.15, comentario=False)
-        texto, resposta = p.limpeza_geral(X, y)
+        n_core = self.count_cpu()
+        # self.analise(data)
+        # X_processado, y_processado = self.model(X,y, 0.001, comentario=False)
+        texto, resposta = p.limpeza_geral(X, y, processo=n_core)
+        if tokenize == None:
+            tokenize = self.tonkenerizador(texto, treino=True)
+            # self.base_teste(X,y,tokenize)
+        data_input = self.padding(texto,tokenize)
+        self.treinamento(data_input, resposta)
 
 if __name__ == "__main__":
     p = pln()
     p.run()
-
-
-
