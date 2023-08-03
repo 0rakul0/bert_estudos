@@ -20,7 +20,7 @@ from keras.preprocessing.text import Tokenizer
 import tensorflow_datasets as tfds
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
-
+from keras.models import model_from_json
 import modelo_dcnn
 
 
@@ -179,7 +179,13 @@ class pln():
                                                                    padding='post', maxlen=max_len)
         return data_input
 
-    def treinamento(self, data_input, resposta, tokenize):
+    def treinamento(self, data_input, resposta, tokenize, tratado=None):
+
+        if tratado == None:
+            data_labels = resposta
+            data_labels[data_labels == 4] = 1  # transforma para 0 ou 1
+            resposta = data_labels
+
         train_input, teste_input, train_label, teste_label = train_test_split(data_input, resposta,test_size=0.3, stratify=resposta)
 
         print("###### treino #####")
@@ -214,41 +220,82 @@ class pln():
         if ckpt_manager.latest_checkpoint:
             ckpt.restore(ckpt_manager.latest_checkpoint)
             print('modelo restalrado')
-        history = Dcnn.fit(train_input, train_label, batch_size=bach_size, epochs=nb_epochs,
+        """
+        com o modelo instanciado passamos os dados de treino, dados de resposta,
+        o tamanho do Tamanho do lote batch_size (n de interações por lote),
+        o numero de epocas e o validation_split= é para testar logo que possivel
+        
+        o mais importante é o val_accuracy <- ele quem define o real aprendizado,
+        nosso modelo está apresentando uma taxa em média de 80% de acerto,
+        
+        o callback serve para não precisar rodar tudo e parar antes 
+        """
+        modelo_estrutura = './classificador_dcnn.json'
+        modelo_pesos = './classificador_dcnn'
+        if modelo_estrutura and modelo_pesos:
+            # para carregar
+            arquivo = open('./classificador_dcnn.json', 'r')
+            estrutura_rede = arquivo.read()
+            arquivo.close()
+
+            Dcnn = model_from_json(estrutura_rede)
+            history = Dcnn.load_weights('./classificador_dcnn')
+        else:
+            history = Dcnn.fit(train_input, train_label, batch_size=bach_size, epochs=nb_epochs, verbose=1,
                            validation_split=0.1)
-        ckpt_manager.save()
-        return history,teste_input, teste_label, bach_size
 
-    def avaliador(self, history, teste_input, teste_label, bach_size):
+            Dcnn.save('./modelo_Dcnn.keras')
 
-        ## avalizacao de modelo
+            # essa função serve para salvar o modelo em um checkpoint mas o certo é salvar o modelo e os pesos
+            ckpt_manager.save()
 
-        resultados = history.evaluate(teste_input, teste_label, batch_size=bach_size)
+            classificador_dcnn = Dcnn.to_json()
+            with open('classificador_dcnn.json', 'w') as json_file:
+                json_file.write(classificador_dcnn)
+            Dcnn.save_weights('classificador_dcnn', save_format='tf')
+
+        resultados = Dcnn.evaluate(teste_input, teste_label, batch_size=bach_size)
         print("evaluate do Dcnn",resultados)
 
-        y_pred_teste = history.predict(teste_input)
+        y_pred_teste = Dcnn.predict(teste_input)
         y_pred_teste = (y_pred_teste > 0.5)
+        print("teste de sentimento: ",y_pred_teste)
 
         cm = confusion_matrix(teste_label, y_pred_teste)
         print(cm)
 
+        # Salvar o heatmap em um arquivo separado
         sns.heatmap(cm, annot=True)
+        plt.title('Matriz de Confusão')
+        plt.savefig('heatmap.png')  # Nome do arquivo que será salvo
+        plt.show()
 
+        # Salvar o gráfico de progresso de validação
         plt.plot(history.history['loss'])
         plt.plot(history.history['val_loss'])
-        plt.title('progresso de validação')
+        plt.title('Progresso de Validação')
         plt.xlabel('Epoch')
         plt.ylabel('Loss')
         plt.legend(['Training loss', 'Validation loss'])
+        plt.savefig('loss_progress.png')  # Nome do arquivo que será salvo
         plt.show()
 
-        plt.plot(history.history['accracy'])
+        # Salvar o gráfico de progresso de validação da acurácia
+        plt.plot(history.history['accuracy'])
         plt.plot(history.history['val_accuracy'])
-        plt.title('progresso de validação da accuracia')
+        plt.title('Progresso de Validação da Acurácia')
         plt.xlabel('Epoch')
         plt.ylabel('Accuracy')
         plt.legend(['Training accuracy', 'Validation accuracy'])
+        plt.savefig('accuracy_progress.png')  # Nome do arquivo que será salvo
         plt.show()
+
+        teste = ['i love you', 'i hate you']
+        for t in teste:
+            texto = tokenize.encode(t)
+            predictions = Dcnn([texto], training=False).numpy()
+            print(predictions)
+
 
     def run(self):
         tokenize = self.carrega_vocab()
@@ -256,14 +303,14 @@ class pln():
         X, y = self.processamento(data, comentario=False)
         n_core = self.count_cpu()
         # self.analise(data)
-        X_processado, y_processado = self.separador(X,y, 0.9, comentario=True)
-        texto, resposta = p.limpeza_geral(X_processado, y_processado, processo=n_core)
-        if tokenize != None:
-            tokenize = self.tonkenerizador(texto, treino=True)
+        texto, resposta = self.separador(X,y, 0.9, comentario=True)
+        # texto, resposta = p.limpeza_geral(texto, resposta, processo=n_core)
+        if tokenize == None:
+            tokenize = self.tonkenerizador(texto, treino=False)
             # self.base_teste(X,y,tokenize)
         data_input = self.padding(texto,tokenize)
-        history,teste_input, teste_label, bach_size = self.treinamento(data_input, resposta, tokenize)
-        self.avaliador(history, teste_input, teste_label, bach_size)
+        self.treinamento(data_input, resposta, tokenize)
+
 
 if __name__ == "__main__":
     p = pln()
