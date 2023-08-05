@@ -1,3 +1,4 @@
+import keras_preprocessing.sequence
 import numpy as np
 import pandas as pd
 import re
@@ -19,11 +20,21 @@ with open('./tradutor/europarl-v7.pt-en.pt', mode='r', encoding='utf-8') as f:
 corpus_en = europarl_en
 corpus_pt = europarl_pt
 
-corpus_en = limpeza(corpus_en)
-corpus_pt = limpeza(corpus_pt)
+corpus_en = re.sub(r"\.(?=[0-9]|[a-z]|[A-Z])", ".$$$", corpus_en)
+corpus_en = re.sub(r".\$\$\$", '', corpus_en)
+corpus_en = re.sub(r" +", ' ', corpus_en)
+corpus_en = corpus_en.split('\n')
+print(len(corpus_en))
+
+corpus_pt = re.sub(r"\.(?=[0-9]|[a-z]|[A-Z])", ".$$$", corpus_pt)
+corpus_pt = re.sub(r".\$\$\$", '', corpus_pt)
+corpus_pt = re.sub(r" +", ' ', corpus_pt)
+corpus_pt = corpus_pt.split('\n')
+print(len(corpus_pt))
+
 
 #### tokenizer ####
-#
+
 # build_tokenize_en = tfds.deprecated.text.SubwordTextEncoder.build_from_corpus(corpus_en, target_vocab_size=2**13)
 # build_tokenize_pt = tfds.deprecated.text.SubwordTextEncoder.build_from_corpus(corpus_pt, target_vocab_size=2**13)
 #
@@ -57,6 +68,8 @@ o Objetivo é tirar frases com mais de 15 palavras
 max_length = 15
 idx_to_remove = [count for count, sent in enumerate(inputs_en) if len(sent) > max_length]
 
+print(len(idx_to_remove))
+
 ### mantem a lista com os mesmos indices
 for idx in reversed(idx_to_remove):
     del inputs_en[idx]
@@ -64,8 +77,6 @@ for idx in reversed(idx_to_remove):
 
 print(len(idx_to_remove))
 
-
-max_length = 15
 idx_to_remove = [count for count, sent in enumerate(outputs_pt) if len(sent) > max_length]
 
 ### mantem a lista com os mesmos indices
@@ -79,3 +90,12 @@ print(len(idx_to_remove))
 print("tamanhos das entradas e saidas")
 print(len(inputs_en))
 print(len(outputs_pt))
+
+#### padding #####
+inputs_en = keras_preprocessing.sequence.pad_sequences(inputs_en, value=0, padding='post', maxlen=max_length)
+outputs_pt = keras_preprocessing.sequence.pad_sequences(outputs_pt, value=0, padding='post', maxlen=max_length)
+
+print(inputs_en[random.randint(0, len(inputs_en) - 1)])
+print(outputs_pt[random.randint(0, len(outputs_pt) - 1)])
+
+ 

@@ -141,14 +141,14 @@ class pln():
         :param texto: lista com o texto limpo
         :return:
         """
-        encode_on = r"./vocab_tokenizer"
+        encode_on = r"./vocabs/vocab_tokenizer"
 
         if encode_on and treino==False:
             tokenizer_load = self.carrega_vocab()
         else:
             # build
             tokenizer_build = tfds.deprecated.text.SubwordTextEncoder.build_from_corpus(texto, target_vocab_size=2**15)
-            tokenizer_build.save_to_file("./vocab_tokenizer")
+            tokenizer_build.save_to_file("./vocabs/vocab_tokenizer")
             print('salvando o vocab')
             tokenizer_load = self.carrega_vocab()
 
