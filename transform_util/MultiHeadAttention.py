@@ -1,11 +1,11 @@
 import numpy as np
 import tensorflow as tf
 from keras import layers
-import ScaledDotProductAttention as sdpa
+import transform_util.ScaledDotProductAttention as sdpa
 
 class MultiHeadAttention(layers.Layer):
     def __init__(self, nb_proj):
-        super(MultiHeadAttention, self).__init__
+        super(MultiHeadAttention, self).__init__()
         self.nb_proj = nb_proj
     def build(self, input_shape):
         self.d_model = input_shape[-1]

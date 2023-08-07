@@ -1,8 +1,8 @@
 import numpy as np
 import tensorflow as tf
 from keras import layers
-import MultiHeadAttention as mha
-import PositionEnconding as pe
+import transform_util.MultiHeadAttention as mha
+import transform_util.PositionEnconding as pe
 
 class EncoderLayer(layers.Layer):
     def __init__(self, FFN_units, nb_proj, dropout_rate):
@@ -18,7 +18,7 @@ class EncoderLayer(layers.Layer):
 
         self.norm_1 = layers.LayerNormalization(epsilon=1e-6)
         self.dense_1 = layers.Dense(units=self.FFN_units, activation='relu')
-        self.dense_2 = layers.Dense(units=self.FFN_units, activation='relu')
+        self.dense_2 = layers.Dense(units=self.d_model, activation='relu')
         self.dropout_2 = layers.Dropout(rate=self.dropout_rate)
 
         self.norm_2 = layers.LayerNormalization(epsilon=1e-6)

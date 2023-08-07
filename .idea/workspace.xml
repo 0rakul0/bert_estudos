@@ -5,19 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c71e5ec3-11b6-4a02-b689-d0a4f36235e9" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/bert_estudos.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/transform_util/Encoders.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/transform_util/MultiHeadAttention.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/transform_util/PositionEnconding.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/transform_util/ScaledDotProductAttention.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/transformer_01.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/transform_util/CustomSchedule.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/transform_util/Decoders.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/transform_util/Transformer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/transformer_01.py" beforeDir="false" afterPath="$PROJECT_DIR$/transformer_01.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vocab_tokenizer.subwords" beforeDir="false" afterPath="$PROJECT_DIR$/vocabs/vocab_tokenizer.subwords" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vocab_tokenizer_en.subwords" beforeDir="false" afterPath="$PROJECT_DIR$/vocabs/vocab_tokenizer_en.subwords" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/vocab_tokenizer_pt.subwords" beforeDir="false" afterPath="$PROJECT_DIR$/vocabs/vocab_tokenizer_pt.subwords" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/transform_util/Encoders.py" beforeDir="false" afterPath="$PROJECT_DIR$/transform_util/Encoders.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/transform_util/MultiHeadAttention.py" beforeDir="false" afterPath="$PROJECT_DIR$/transform_util/MultiHeadAttention.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/transform_util/PositionEnconding.py" beforeDir="false" afterPath="$PROJECT_DIR$/transform_util/PositionEnconding.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/transformer_01.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/transformer_01.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -300,8 +295,9 @@
           <option name="timeStamp" value="64" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/transform_util/PositionEnconding.py</url>
-          <option name="timeStamp" value="65" />
+          <url>file://$PROJECT_DIR$/transform_util/Transformer.py</url>
+          <line>28</line>
+          <option name="timeStamp" value="73" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
