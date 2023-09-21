@@ -5,13 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c71e5ec3-11b6-4a02-b689-d0a4f36235e9" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/transform_util/CustomSchedule.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/transform_util/Decoders.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/transform_util/Transformer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/transform_util/Encoders.py" beforeDir="false" afterPath="$PROJECT_DIR$/transform_util/Encoders.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/transform_util/MultiHeadAttention.py" beforeDir="false" afterPath="$PROJECT_DIR$/transform_util/MultiHeadAttention.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/transform_util/PositionEnconding.py" beforeDir="false" afterPath="$PROJECT_DIR$/transform_util/PositionEnconding.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/transformer_01.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/transformer_01.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
